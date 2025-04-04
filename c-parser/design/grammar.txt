@@ -1,0 +1,10 @@
+E  → T E'       { E.val = T.val + E'.val }
+E' → + T E'     { E'.val = T.val + E'.val }
+    | - T E'    { E'.val = -T.val + E'.val }
+    | ε         { E'.val = 0 }
+T  → F T'       { T.val = F.val * T'.val }
+T' → * F T'     { T'.val = F.val * T'.val }
+    | / F T'    { T'.val = (1 / F.val) * T'.val }
+    | ε         { T'.val = 1 }
+F  → NUM        { F.val = NUM.lexval }
+    | ( E )     { F.val = E.val }
