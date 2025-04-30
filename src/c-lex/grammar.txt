@@ -1,0 +1,37 @@
+program         → declaration*
+
+declaration     → varDeclaration | funDeclaration | statement
+
+varDeclaration  → type identifier ("=" expression)? ";"
+funDeclaration  → type identifier "(" parameters? ")" block
+
+parameters      → parameter ("," parameter)*
+parameter       → type identifier
+
+type            → "int" | "char" | "float" | "void" | "double"
+
+statement       → exprStatement | block | ifStatement | whileStatement |
+                  forStatement | returnStatement | ";"
+
+block           → "{" declaration* "}"
+ifStatement     → "if" "(" expression ")" statement ("else" statement)?
+whileStatement  → "while" "(" expression ")" statement
+forStatement    → "for" "(" (varDeclaration | exprStatement | ";")
+                  expression? ";" expression? ")" statement
+returnStatement → "return" expression? ";"
+exprStatement   → expression ";"
+
+expression      → assignment
+assignment      → (call ".")? identifier "=" assignment | logicOr
+
+logicOr         → logicAnd ("||" logicAnd)*
+logicAnd        → equality ("&&" equality)*
+equality        → comparison (("==" | "!=") comparison)*
+comparison      → term ((">" | ">=" | "<" | "<=") term)*
+term            → factor (("+" | "-") factor)*
+factor          → unary (("*" | "/" | "%") unary)*
+unary           → ("!" | "-") unary | call
+call            → primary ("(" arguments? ")")*
+primary         → identifier | number | "(" expression ")" | string | char
+
+arguments       → expression ("," expression)*

@@ -3,18 +3,15 @@ project (grammar C)
 
 set (CMAKE_C_STANDARD 11)
 
-include_directories (c-lex c-parser)
+include_directories (include src/c-lex src/c-parser src/c-semantic)
 
-
-
-add_executable (grammar
-        main.c
-        c-lex/lexer.c
-        c-lex/linklist.c
-        c-lex/nfa.c
-        c-lex/regex.c
-        c-lex/Symbol.c
-        c-lex/symtable.c
-        c-parser/parser.c
-        c-parser/parser.h
-        c-parser/shift_reduce_parser.c)
+add_executable ( grammar
+        src/main.c
+        src/c-lex/lexer.c
+        src/c-lex/lexer.h
+        src/c-lex/token.c
+        src/c-lex/token.h
+        include/base.h
+        src/c-lex/Scanner.c
+        src/c-lex/Scanner.h
+)
