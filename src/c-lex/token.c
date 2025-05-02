@@ -34,7 +34,7 @@ unsigned int __Tokens = 0;
 Token* __TokenList = NULL;
 
 void printToken ( Token t ) {
-    printf( "{ %s | %s } \n", TOKEN_TYPE_STRINGS[t.type], t.lexeme );
+    printf( "{ %s | \"%s\" | %d | %d } \n", TOKEN_TYPE_STRINGS[t.type], t.lexeme, t.size, t.line );
 }
 
 Token makeToken ( char* lexeme, unsigned int line, unsigned size, TokenType type ) {
@@ -43,21 +43,21 @@ Token makeToken ( char* lexeme, unsigned int line, unsigned size, TokenType type
             line,
             size,
     };
-    memcpy( &t.lexeme, lexeme, size );
+    memcpy( &t.lexeme, lexeme, (size + 1) * sizeof(char) );
     return t;
 }
 
 void addToken ( Token t ) {
 
     if ( !__TokenList ) {
-        sprintf( stderr, "__TokenList not initialized\n" );
+        sprintf( (char *)stderr, "__TokenList not initialized\n" );
         exit(EXIT_FAILURE);
     }
 
     if ( __CurrentSize <= __Tokens ) {
         void* aux = realloc( __TokenList, 2 * __CurrentSize * sizeof(Token));
         if ( !aux ) {
-            sprintf( stderr, "Not enough memory to realloc __TokenList\n" );
+            sprintf( (char *)stderr, "Not enough memory to realloc __TokenList\n" );
             exit(EXIT_FAILURE);
         }
         else {

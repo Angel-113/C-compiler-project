@@ -7,11 +7,13 @@
 
 #include "base.h"
 #include "token.h"
-#include "Scanner.h"
+#include "scanner.h"
+#include "keywords.h"
 
 extern Scanner scanner;
+extern Map map;
 extern void Lexer(const char* file_path );
-extern void CloseLexerResult (void ); /* When 'result' no needed anymore for external programs */
+extern void CloseLexerResult (void); /* When 'result' no needed anymore for external programs */
 
 typedef struct LAResult {
     unsigned int tTokens;

@@ -1,4 +1,4 @@
-#include "Scanner.h"
+#include "scanner.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@ static bool match(char expected) {
 }
 
 static char advance(void) {
-    if (buffer[pos] == '\0') return '\0'; // End of file
+    if (buffer[pos] == '\0') return '\0'; /* End of file */
     char c = buffer[pos++];
     if (c == '\n') line++;
     return c;
@@ -44,7 +44,7 @@ static char next ( void ) {
 }
 
 Scanner InitScanner(const char* path) {
-    Scanner scanner = { 0 };
+    Scanner scanner = {0 };
 
     FILE* file = fopen(path, "rb");
     if ( !file ) {
@@ -56,14 +56,14 @@ Scanner InitScanner(const char* path) {
     buffer_size = ftell(file);
     rewind(file);
 
-    buffer = (char*) malloc(buffer_size + 1); // +1 for null terminator
+    buffer = (char*) malloc(buffer_size + 1); /* +1 for null terminator */
     if (!buffer) {
         fprintf(stderr, "Failed to allocate memory for file\n");
         exit(EXIT_FAILURE);
     }
 
     fread(buffer, 1, buffer_size, file);
-    buffer[buffer_size] = '\0'; // Null-terminate the buffer
+    buffer[buffer_size] = '\0'; /* Null-terminate the buffer */
 
     fclose(file);
 

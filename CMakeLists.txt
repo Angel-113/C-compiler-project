@@ -12,6 +12,8 @@ add_executable ( grammar
         src/c-lex/token.c
         src/c-lex/token.h
         include/base.h
-        src/c-lex/Scanner.c
-        src/c-lex/Scanner.h
+        src/c-lex/scanner.c
+        src/c-lex/scanner.h
+        src/c-lex/keywords.c
+        src/c-lex/keywords.h
 )

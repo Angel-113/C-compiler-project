@@ -3,9 +3,6 @@
 
 #include "base.h"
 
-
-#include "base.h"
-
 typedef struct Scanner {
     char (*peek)(void);
     bool (*match)(char);

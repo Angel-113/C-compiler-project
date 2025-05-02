@@ -1,5 +1,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "bugprone-reserved-identifier"
+
 #ifndef GRAMMAR_TOKEN_H
 #define GRAMMAR_TOKEN_H
 

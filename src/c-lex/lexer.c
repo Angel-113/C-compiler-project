@@ -7,109 +7,113 @@ static void CloseLexer ( void );
 static void PrintTokens ( void );
 
 /* Helpers */
-static void AddToken ( char* lexeme, unsigned int line, unsigned int size, TokenType type );
-static void Preprocessing (void );
+static void AddToken ( TokenType type );
 static bool IsAlpha ( char c );
 static bool IsDigit ( char c );
 static void Identifiers ( void );
-static void String(void);
-static void Number(void);
-static void Character(void);
-static void Keywords ( void );
+static void String ( void );
+static void Number ( void );
+static void Character ( void );
+static void Comments ( void );
+static void Preprocessor ( void );
 
-Scanner scanner = { 0 };
-LAResult result = { 0 };
+Scanner scanner = { 0 }; /* Scanner for reading the file */
+LAResult result = { 0 }; /* Where to save the Lexical Analysis results */
+Map map = { 0 }; /* A hash table for identifying keywords */
 
-static char tBuffer[100] = { 0 }; /* Token buffer for lexeme */
-static unsigned int current = 0;
+static char tBuffer[100] = { 0 }; /* Buffer for lexeme */
+static unsigned int current = 0; /* Current buffer position */
 
-void Lexer (const char* path ) {
+void Lexer ( const char* path ) {
     InitLexer(path);
     MainLexer();
     CloseLexer();
 }
 
-void MainLexer( void ) {
+void MainLexer( void ) { /* Lexer structure is based on Crafting Interpreters: https://craftinginterpreters.com/scanning.html */
 
     while ( scanner.peek() != '\0' ) {
 
-        Preprocessing();
-
-        tBuffer[current] = scanner.peek();
-
-        /* In here goes the main scanner-lexer */
-
-        switch ( tBuffer[current] ) {
+        switch ( scanner.peek() ) {
 
             default:
 
-                if ( IsDigit(tBuffer[current]) ) {
+                if ( IsDigit(scanner.peek()) ) {
                     /* function to manage number literals */
                     Number();
                 }
-                else if ( IsAlpha(tBuffer[current]) ) {
+                else if ( IsAlpha(scanner.peek()) ) {
                     /* function to manage identifiers */
                     Identifiers();
                 }
                 else {
-                    sprintf(stderr, "Unexpected character at line %d : %s", scanner.get_line_number(), tBuffer);
+                    sprintf( stderr, "Unexpected character at line %d : %s", scanner.get_line_number(), tBuffer );
                     exit(EXIT_FAILURE);
                 }
 
                 break;
 
             /* Single-character Tokens */
-            case '(': AddToken(tBuffer, scanner.get_line_number(), current + 1, LEFT_PAREN); break;
-            case ')': AddToken(tBuffer, scanner.get_line_number(), current + 1, RIGHT_PAREN); break;
-            case '{': AddToken(tBuffer, scanner.get_line_number(), current + 1, LEFT_BRACE); break;
-            case '}': AddToken(tBuffer, scanner.get_line_number(), current + 1, RIGHT_BRACE); break;
-            case ',': AddToken(tBuffer, scanner.get_line_number(), current + 1, COMMA); break;
-            case '.': AddToken(tBuffer, scanner.get_line_number(), current + 1, DOT); break;
+            case '(': AddToken(LEFT_PAREN); break;
+            case ')': AddToken(RIGHT_PAREN); break;
+            case '{': AddToken(LEFT_BRACE); break;
+            case '}': AddToken(RIGHT_BRACE); break;
+            case ',': AddToken(COMMA); break;
+            case '.': AddToken(DOT); break;
 
             /* Two-character Tokens */
+            case '=':
+                if ( scanner.match('=') )
+                    AddToken(EQUAL_EQUAL);
+                else
+                    AddToken(EQUAL);
+                break;
+
             case '-':
                 if ( scanner.match('=') )
-                    AddToken(tBuffer, scanner.get_line_number(), current + 2, MINUS_EQUAL);
+                    AddToken(MINUS_EQUAL);
                 else
-                    AddToken(tBuffer, scanner.get_line_number(), current + 1, MINUS);
+                    AddToken(MINUS);
                 break;
 
             case '+':
                 if ( scanner.match('=') )
-                    AddToken(tBuffer, scanner.get_line_number(), current + 2, PLUS_EQUAL);
+                    AddToken(PLUS_EQUAL);
                 else
-                    AddToken(tBuffer, scanner.get_line_number(), current + 1, PLUS);
+                    AddToken(PLUS);
                 break;
 
-            case ';': AddToken(tBuffer, scanner.get_line_number(), current + 1, SEMICOLON); break;
+            case ';': AddToken(SEMICOLON); break;
 
             case '/':
                 if ( scanner.match('=') )
-                    AddToken(tBuffer, scanner.get_line_number(), current + 2, SLASH_EQUAL);
+                    AddToken(SLASH_EQUAL);
+                else if ( scanner.match('*') || scanner.match('/'))
+                    Comments();
                 else
-                    AddToken(tBuffer, scanner.get_line_number(), current + 1, SLASH);
+                    AddToken(SLASH);
                 break;
 
             case '*':
                 if ( scanner.match('=') )
-                    AddToken(tBuffer, scanner.get_line_number(), current + 2, STAR_EQUAL);
+                    AddToken(STAR_EQUAL);
                 else
-                    AddToken(tBuffer, scanner.get_line_number(), current + 1, STAR);
+                    AddToken(STAR);
                 break;
 
             case '&':
-                AddToken(tBuffer, scanner.get_line_number(), current + 1, BIT_AND);
+                AddToken(BIT_AND);
                 break;
 
             case '|':
-                AddToken(tBuffer, scanner.get_line_number(), current + 1, BIT_OR);
+                AddToken(BIT_OR);
                 break;
 
             case '^':
-                AddToken(tBuffer, scanner.get_line_number(), current + 1, X_OR);
+                AddToken(X_OR);
                 break;
 
-            case '!': AddToken(tBuffer, scanner.get_line_number(), current + 1, NOT); break;
+            case '!': AddToken(NOT); break;
 
             case '"':
                 /* Function to manage string literals  */
@@ -121,8 +125,18 @@ void MainLexer( void ) {
                 Character();
                 break;
 
+            case '#':
+                Preprocessor();
+                break;
+
+            case '\n':
+            case '\t':
+            case ' ':
+                current = 0;
+                break;
         }
 
+        tBuffer[current] = scanner.peek();
         current++;
         scanner.advance();
 
@@ -135,6 +149,7 @@ void MainLexer( void ) {
 void InitLexer ( const char* path ) {
     __TokenList = malloc( __CurrentSize * sizeof(Token) );
     scanner = InitScanner(path);
+    map = InitMap();
 }
 
 void CloseLexer ( void ) {
@@ -152,25 +167,13 @@ void CloseLexerResult (void ) {
 
 void PrintTokens ( void ) {
     if ( !__TokenList ) return;
-    for (int i = 0; i < __Tokens; i++ ) printToken(__TokenList[i]);
+    for ( int i = 0; i < __Tokens; i++ ) printToken(__TokenList[i]);
 }
 
-void AddToken ( char* lexeme, unsigned int line, unsigned int size, TokenType type ) {
-    addToken( makeToken( lexeme, line, size, type ) );
-    memset( &tBuffer[0], 0, size );
+void AddToken ( TokenType type ) {
+    addToken( makeToken( tBuffer, scanner.get_line_number(), current, type ) );
+    memset( &tBuffer[0], 0, current ); /* Is it really necessary to set all the chars in tBuffer to 0 when adding a new token? */
     current = 0;
-}
-
-void Preprocessing (void ) { /* By this moment it is only required to ignore comments and preprocessor instructions */
-    char c = scanner.peek();
-    if ( c == ' ' || c == '\n' || c == '\t' ) scanner.advance();
-    else if ( c == '/' ) {
-        int b = scanner.match('*') ? '\\' : (scanner.match('/') ? '\n' : '\0');
-        if ( b == '\0' ) return;
-        while ( scanner.peek() != b ) scanner.advance();
-        scanner.advance();
-    }
-    else if ( c == '#' ) while ( scanner.peek() != '\n' ) scanner.advance();
 }
 
 bool IsAlpha ( char c ) {
@@ -179,4 +182,72 @@ bool IsAlpha ( char c ) {
 
 bool IsDigit ( char c ) {
     return '0' <= c && c <= '9';
+}
+
+void Number ( void ) {
+
+    while ( IsDigit( scanner.peek() ) ) {
+        current++;
+        scanner.advance();
+        tBuffer[current] = scanner.peek();
+    }
+
+    if ( scanner.peek() == '.' && IsDigit(scanner.next()) ) {
+        scanner.advance();
+        while ( IsDigit(scanner.peek()) ) {
+            current++;
+            tBuffer[current] = scanner.peek();
+            scanner.advance();
+        }
+    }
+
+    AddToken(NUMBER);
+
+}
+
+void Identifiers ( void ) {
+    while ( IsDigit( scanner.peek() ) || IsAlpha( scanner.peek() ) ) {
+        tBuffer[current] = scanner.peek();
+        scanner.advance();
+        current++;
+    }
+    TokenType type = map.get_token( tBuffer, current );
+    AddToken( type != ERROR ? type : IDENTIFIER );
+}
+
+void String ( void ) {
+    scanner.advance();
+    while ( scanner.peek() != '"' ) {
+        if ( scanner.peek() == '\0' ) {
+            sprintf( (char*)stderr, "Unterminated string literal\n" );
+            exit(EXIT_FAILURE);
+        }
+        scanner.advance();
+        tBuffer[++current] = scanner.peek();
+    }
+    tBuffer[++current] = scanner.peek();
+    AddToken(STRING);
+}
+
+void Character ( void ) {
+    unsigned int start = current;
+    scanner.advance();
+    while ( current - start < 3 ) {
+        tBuffer[current] = scanner.peek();
+        current++;
+    }
+    if ( scanner.peek() != '\'' ) {
+        sprintf( (char*)stderr, "Unterminated char literal\n");
+        exit(EXIT_FAILURE);
+    }
+    AddToken(CHARACTER);
+}
+
+void Comments ( void ) { /* Ignore comments */
+    int end = scanner.peek() == '*' ? '/' : scanner.peek() == '/' ? '\n' : '\0';
+    while ( scanner.peek() != end && end != '\0' ) scanner.advance();
+}
+
+void Preprocessor ( void ) { /* At this moment it is only required to ignore the preprocessor instructions */
+    while ( scanner.peek() != '\n' ) scanner.advance();
 }

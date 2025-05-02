@@ -70,8 +70,15 @@ build CMakeFiles/grammar.dir/src/c-lex/token.c.o: C_COMPILER__grammar_unscanned_
   OBJECT_DIR = CMakeFiles/grammar.dir
   OBJECT_FILE_DIR = CMakeFiles/grammar.dir/src/c-lex
 
-build CMakeFiles/grammar.dir/src/c-lex/Scanner.c.o: C_COMPILER__grammar_unscanned_Debug /home/angel/CLionProjects/C-compiler-project/src/c-lex/Scanner.c || cmake_object_order_depends_target_grammar
-  DEP_FILE = CMakeFiles/grammar.dir/src/c-lex/Scanner.c.o.d
+build CMakeFiles/grammar.dir/src/c-lex/scanner.c.o: C_COMPILER__grammar_unscanned_Debug /home/angel/CLionProjects/C-compiler-project/src/c-lex/scanner.c || cmake_object_order_depends_target_grammar
+  DEP_FILE = CMakeFiles/grammar.dir/src/c-lex/scanner.c.o.d
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  INCLUDES = -I/home/angel/CLionProjects/C-compiler-project/include -I/home/angel/CLionProjects/C-compiler-project/src/c-lex -I/home/angel/CLionProjects/C-compiler-project/src/c-parser -I/home/angel/CLionProjects/C-compiler-project/src/c-semantic
+  OBJECT_DIR = CMakeFiles/grammar.dir
+  OBJECT_FILE_DIR = CMakeFiles/grammar.dir/src/c-lex
+
+build CMakeFiles/grammar.dir/src/c-lex/keywords.c.o: C_COMPILER__grammar_unscanned_Debug /home/angel/CLionProjects/C-compiler-project/src/c-lex/keywords.c || cmake_object_order_depends_target_grammar
+  DEP_FILE = CMakeFiles/grammar.dir/src/c-lex/keywords.c.o.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
   INCLUDES = -I/home/angel/CLionProjects/C-compiler-project/include -I/home/angel/CLionProjects/C-compiler-project/src/c-lex -I/home/angel/CLionProjects/C-compiler-project/src/c-parser -I/home/angel/CLionProjects/C-compiler-project/src/c-semantic
   OBJECT_DIR = CMakeFiles/grammar.dir
@@ -85,7 +92,7 @@ build CMakeFiles/grammar.dir/src/c-lex/Scanner.c.o: C_COMPILER__grammar_unscanne
 #############################################
 # Link the executable grammar
 
-build grammar: C_EXECUTABLE_LINKER__grammar_Debug CMakeFiles/grammar.dir/src/main.c.o CMakeFiles/grammar.dir/src/c-lex/lexer.c.o CMakeFiles/grammar.dir/src/c-lex/token.c.o CMakeFiles/grammar.dir/src/c-lex/Scanner.c.o
+build grammar: C_EXECUTABLE_LINKER__grammar_Debug CMakeFiles/grammar.dir/src/main.c.o CMakeFiles/grammar.dir/src/c-lex/lexer.c.o CMakeFiles/grammar.dir/src/c-lex/token.c.o CMakeFiles/grammar.dir/src/c-lex/scanner.c.o CMakeFiles/grammar.dir/src/c-lex/keywords.c.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/grammar.dir
   POST_BUILD = :
