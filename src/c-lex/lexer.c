@@ -1,150 +1,17 @@
 #include "lexer.h"
 
-/* Principal Linkage Functions */
-static void InitLexer ( const char* path );
-static void MainLexer ( void );
-static void CloseLexer ( void );
-static void PrintTokens ( void );
-
-/* Helpers */
-static void AddToken ( TokenType type );
-static bool IsAlpha ( char c );
-static bool IsDigit ( char c );
-static void Identifiers ( void );
-static void String ( void );
-static void Number ( void );
-static void Character ( void );
-static void Comments ( void );
-static void Preprocessor ( void );
-
 Scanner scanner = { 0 }; /* Scanner for reading the file */
 LAResult result = { 0 }; /* Where to save the Lexical Analysis results */
 Map map = { 0 }; /* A hash table for identifying keywords */
 
 static char tBuffer[100] = { 0 }; /* Buffer for lexeme */
-static unsigned int current = 0; /* Current buffer position */
+static long int current = 0; /* Current buffer position */
 
-void Lexer ( const char* path ) {
-    InitLexer(path);
-    MainLexer();
-    CloseLexer();
-}
-
-void MainLexer( void ) { /* Lexer structure is based on Crafting Interpreters: https://craftinginterpreters.com/scanning.html */
-
-    while ( scanner.peek() != '\0' ) {
-
-        switch ( scanner.peek() ) {
-
-            default:
-
-                if ( IsDigit(scanner.peek()) ) {
-                    /* function to manage number literals */
-                    Number();
-                }
-                else if ( IsAlpha(scanner.peek()) ) {
-                    /* function to manage identifiers */
-                    Identifiers();
-                }
-                else {
-                    sprintf( stderr, "Unexpected character at line %d : %s", scanner.get_line_number(), tBuffer );
-                    exit(EXIT_FAILURE);
-                }
-
-                break;
-
-            /* Single-character Tokens */
-            case '(': AddToken(LEFT_PAREN); break;
-            case ')': AddToken(RIGHT_PAREN); break;
-            case '{': AddToken(LEFT_BRACE); break;
-            case '}': AddToken(RIGHT_BRACE); break;
-            case ',': AddToken(COMMA); break;
-            case '.': AddToken(DOT); break;
-
-            /* Two-character Tokens */
-            case '=':
-                if ( scanner.match('=') )
-                    AddToken(EQUAL_EQUAL);
-                else
-                    AddToken(EQUAL);
-                break;
-
-            case '-':
-                if ( scanner.match('=') )
-                    AddToken(MINUS_EQUAL);
-                else
-                    AddToken(MINUS);
-                break;
-
-            case '+':
-                if ( scanner.match('=') )
-                    AddToken(PLUS_EQUAL);
-                else
-                    AddToken(PLUS);
-                break;
-
-            case ';': AddToken(SEMICOLON); break;
-
-            case '/':
-                if ( scanner.match('=') )
-                    AddToken(SLASH_EQUAL);
-                else if ( scanner.match('*') || scanner.match('/'))
-                    Comments();
-                else
-                    AddToken(SLASH);
-                break;
-
-            case '*':
-                if ( scanner.match('=') )
-                    AddToken(STAR_EQUAL);
-                else
-                    AddToken(STAR);
-                break;
-
-            case '&':
-                AddToken(BIT_AND);
-                break;
-
-            case '|':
-                AddToken(BIT_OR);
-                break;
-
-            case '^':
-                AddToken(X_OR);
-                break;
-
-            case '!': AddToken(NOT); break;
-
-            case '"':
-                /* Function to manage string literals  */
-                String();
-                break;
-
-            case '\'':
-                /* Function to manage character literals */
-                Character();
-                break;
-
-            case '#':
-                Preprocessor();
-                break;
-
-            case '\n':
-            case '\t':
-            case ' ':
-                current = 0;
-                break;
-        }
-
-        tBuffer[current] = scanner.peek();
-        current++;
-        scanner.advance();
-
-    }
-
-    PrintTokens();
-
-}
+/* Principal Linkage Functions */
+static void InitLexer ( const char* path );
+static void MainLexer ( void );
+static void CloseLexer ( void );
+static void PrintTokens ( void );
 
 void InitLexer ( const char* path ) {
     __TokenList = malloc( __CurrentSize * sizeof(Token) );
@@ -165,6 +32,17 @@ void CloseLexerResult (void ) {
     result.Tokens = NULL;
 }
 
+/* Helpers */
+static void AddToken ( TokenType type );
+static bool IsAlpha ( char c );
+static bool IsDigit ( char c );
+static void Identifiers ( void );
+static void String ( void );
+static void Number ( void );
+static void Character ( void );
+static void Comments ( void );
+static void Preprocessor ( void );
+
 void PrintTokens ( void ) {
     if ( !__TokenList ) return;
     for ( int i = 0; i < __Tokens; i++ ) printToken(__TokenList[i]);
@@ -172,8 +50,8 @@ void PrintTokens ( void ) {
 
 void AddToken ( TokenType type ) {
     addToken( makeToken( tBuffer, scanner.get_line_number(), current, type ) );
-    memset( &tBuffer[0], 0, current ); /* Is it really necessary to set all the chars in tBuffer to 0 when adding a new token? */
-    current = 0;
+    memset( &tBuffer[0], 0, current + 1 ); /* Is it really necessary to set all the chars in tBuffer to 0 when adding a new token? */
+    current = -1;
 }
 
 bool IsAlpha ( char c ) {
@@ -184,70 +62,158 @@ bool IsDigit ( char c ) {
     return '0' <= c && c <= '9';
 }
 
-void Number ( void ) {
+void Lexer ( const char* path ) {
+    InitLexer(path);
+    MainLexer();
+    CloseLexer();
+}
 
-    while ( IsDigit( scanner.peek() ) ) {
-        current++;
-        scanner.advance();
-        tBuffer[current] = scanner.peek();
-    }
+void MainLexer ( void ) { /* Lexer structure based on Crafting Interpreters: https://craftinginterpreters.com/scanning.html */
+    while ( scanner.peek() != '\0' ) {
+        char c = scanner.peek();
+        tBuffer[current] = c;
+        switch ( c ) {
+            default:
+                if ( IsDigit(c) ) Number();
+                else if ( IsAlpha(c) ) Identifiers();
+                else { lexer_error("Unexpected character at line %d, %c \n", scanner.get_line_number(), c) }
+                break;
 
-    if ( scanner.peek() == '.' && IsDigit(scanner.next()) ) {
-        scanner.advance();
-        while ( IsDigit(scanner.peek()) ) {
-            current++;
-            tBuffer[current] = scanner.peek();
-            scanner.advance();
+            case '(': AddToken(LEFT_PAREN); break;
+            case ')': AddToken(RIGHT_PAREN); break;
+            case '{': AddToken(LEFT_BRACE); break;
+            case '}': AddToken(RIGHT_BRACE); break;
+            case ',': AddToken(COMMA); break;
+            case '.': AddToken(DOT); break;
+            case ':': AddToken(DOTS); break;
+            case '-': AddToken(scanner.match('-') ? MINUS_MINUS : scanner.match('=') ? MINUS_EQUAL : scanner.match('>') ? ARROW : MINUS); break;
+            case '+': AddToken(scanner.match('+') ? PLUS_PLUS : scanner.match('=') ? PLUS_EQUAL : PLUS); break;
+            case '=': AddToken(scanner.match('=') ? EQUAL_EQUAL : EQUAL); break;
+            case '<': AddToken(scanner.match('=') ? LESSER_EQUAL : LESSER); break;
+            case '>': AddToken(scanner.match('=') ? GREATER_EQUAL : GREATER); break;
+            case ';': AddToken(SEMICOLON); break;
+
+            case '/':
+                if ( scanner.next() == '/' || scanner.next() == '*' ) Comments();
+                else AddToken( scanner.match('=') ? SLASH_EQUAL : SLASH );
+                break;
+
+            case '*': AddToken(scanner.match('=') ? STAR_EQUAL : STAR); break;
+            case '&': AddToken(scanner.match('&') ? AND : scanner.match('=') ? BIT_AND_EQUAL : BIT_AND); break;
+            case '|': AddToken(scanner.match('|') ? OR: scanner.match('=') ? BIT_OR_EQUAL : BIT_OR); break;
+            case '^': AddToken(scanner.match('=') ? X_OR_EQUAL : X_OR); break;
+            case '!': AddToken(scanner.match('=') ? DIFFERENT : NOT); break;
+            case '[': AddToken(LEFT_BRACKET); break;
+            case ']': AddToken(RIGHT_BRACKET); break;
+            case '?': AddToken(QUESTION); break;
+            case '"': String(); break;
+            case '\'': Character(); break;
+            case '#': Preprocessor(); break;
+
+            case '\t':
+            case '\n':
+            case ' ':
+                current = -1;
+                break;
         }
-    }
-
-    AddToken(NUMBER);
-
-}
-
-void Identifiers ( void ) {
-    while ( IsDigit( scanner.peek() ) || IsAlpha( scanner.peek() ) ) {
-        tBuffer[current] = scanner.peek();
         scanner.advance();
         current++;
     }
-    TokenType type = map.get_token( tBuffer, current );
-    AddToken( type != ERROR ? type : IDENTIFIER );
+    PrintTokens();
 }
 
-void String ( void ) {
+static bool IsAlphaNumeric ( char c ) { return IsDigit(c) || IsAlpha(c); }
+
+static void Identifiers ( void ) {
+    while ( IsAlphaNumeric(scanner.next()) ) {
+        tBuffer[current++] = scanner.peek();
+        scanner.advance();
+    }
+    tBuffer[current] = scanner.peek();
+    current++;
+    TokenType type = map.get_token(tBuffer, current);
+    AddToken( type == ERROR ? IDENTIFIER : type );
+}
+
+static void ReadNumber ( void ) {
+    while ( IsDigit(scanner.next()) ) {
+        tBuffer[current++] = scanner.peek();
+        scanner.advance();
+    }
+    tBuffer[current] = scanner.peek();
+}
+
+static void Number ( void ) {
+    ReadNumber();
+    if ( scanner.next() == '.' ) ReadNumber();
+    AddToken(NUMBER);
+}
+
+static void String ( void ) {
     scanner.advance();
     while ( scanner.peek() != '"' ) {
-        if ( scanner.peek() == '\0' ) {
-            sprintf( (char*)stderr, "Unterminated string literal\n" );
-            exit(EXIT_FAILURE);
-        }
+        if ( scanner.next() == '\0' ) { error_at("Unterminated string literal at line: %d\n", scanner.get_line_number()) }
+        tBuffer[current++] = scanner.peek();
         scanner.advance();
-        tBuffer[++current] = scanner.peek();
     }
-    tBuffer[++current] = scanner.peek();
     AddToken(STRING);
 }
 
-void Character ( void ) {
-    unsigned int start = current;
-    scanner.advance();
-    while ( current - start < 3 ) {
-        tBuffer[current] = scanner.peek();
-        current++;
+static char HandleSlashChar ( char c ) {
+    switch (c) {
+        default: error_at("Invalid character literal %c\n", c);
+        case 'n' : return '\n';
+        case '\\' : return '\\';
+        case 't' : return '\t';
+        case '0' : return '\0';
+        case '?': return '\?';
+        case 'r': return '\r';
+        case '"': return '\"';
+        case 'a': return '\a';
+        case 'b': return '\b';
+        case 'f': return '\f';
+        case 'v': return '\v';
+        case '\'': return '\'';
     }
-    if ( scanner.peek() != '\'' ) {
-        sprintf( (char*)stderr, "Unterminated char literal\n");
-        exit(EXIT_FAILURE);
+}
+
+static void Character(void) {
+    // Verificar fin de archivo antes de leer
+    if (scanner.peek() == '\0') {error_at("Unterminated character literal at line: %d\n", scanner.get_line_number());}
+
+    char c = scanner.advance();
+    bool is_escaped = false;
+
+    // Manejar secuencias de escape
+    if (c == '\\') {
+        is_escaped = true;
+        if (scanner.peek() == '\0') {error_at("Incomplete escape sequence at line: %d\n", scanner.get_line_number());}
+        char escape_char = scanner.advance();
+        c = HandleSlashChar(escape_char);  // Función que maneja caracteres escapados
     }
+
+    // Validar caracteres inválidos sin escape
+    if (!is_escaped && c == '\'') {error_at("Unexpected unescaped ' in character literal at line: %d\n", scanner.get_line_number());}
+
+    // Verificar y consumir la comilla de cierre
+    if (scanner.peek() == '\0') {error_at("Unterminated character literal at line: %d\n", scanner.get_line_number());}
+
+    if (scanner.next() != '\'') {error_at("Expected closing ' at line: %d\n", scanner.get_line_number());}
+    scanner.advance();  // Consumir la comilla de cierre
+
+    // Almacenar y generar token
+    tBuffer[current++] = c;
     AddToken(CHARACTER);
 }
 
-void Comments ( void ) { /* Ignore comments */
-    int end = scanner.peek() == '*' ? '/' : scanner.peek() == '/' ? '\n' : '\0';
-    while ( scanner.peek() != end && end != '\0' ) scanner.advance();
+static void Comments ( void ) {
+    char end = scanner.next() == '/' ? '\n' : '/';
+    while (1) {
+        if ((end == '/' && scanner.peek() == '*' && scanner.next() == '/') || (end == '\n' && scanner.next() == end)) break;
+        else if (scanner.peek() == '\0') { error_at("Unterminated commentary at line %d\n", scanner.get_line_number()) }
+        scanner.advance();
+    }
+    scanner.advance();
 }
 
-void Preprocessor ( void ) { /* At this moment it is only required to ignore the preprocessor instructions */
-    while ( scanner.peek() != '\n' ) scanner.advance();
-}
+static void Preprocessor ( void ) { while ( scanner.peek() != '\n' ) scanner.advance(); }

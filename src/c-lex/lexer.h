@@ -10,6 +10,19 @@
 #include "scanner.h"
 #include "keywords.h"
 
+#define error( str ) \
+    fprintf(stderr, (str)); \
+    exit(EXIT_FAILURE); \
+
+#define error_at( str, attr1 ) \
+    fprintf(stderr, (str), (attr1)); \
+    exit(EXIT_FAILURE);        \
+
+#define lexer_error( str, line, error ) \
+        fprintf(stderr, (str), (line), (error)); \
+        exit(EXIT_FAILURE); \
+
+
 extern Scanner scanner;
 extern Map map;
 extern void Lexer(const char* file_path );

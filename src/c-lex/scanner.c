@@ -14,14 +14,14 @@ static char peek(void) {
 }
 
 static bool match(char expected) {
-    if ( buffer[pos] == '\0' || buffer[pos] != expected ) return false;
+    if ( buffer[pos + 1] == '\0' || buffer[pos + 1] != expected ) return false;
     pos++;
     return true;
 }
 
 static char advance(void) {
     if (buffer[pos] == '\0') return '\0'; /* End of file */
-    char c = buffer[pos++];
+    char c = buffer[++pos];
     if (c == '\n') line++;
     return c;
 }

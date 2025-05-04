@@ -10,7 +10,7 @@ typedef enum {
     /* One-character tokens : Tokens de un caracter */
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, BIT_AND,
-    BIT_OR, X_OR, NOT,
+    BIT_OR, X_OR, NOT, DOTS, LEFT_BRACKET, RIGHT_BRACKET, QUESTION,
 
     /* Two-character tokens : Tokens de dos caracteres */
     EQUAL, EQUAL_EQUAL,
@@ -18,7 +18,9 @@ typedef enum {
     LESSER, LESSER_EQUAL,
     PLUS_EQUAL, MINUS_EQUAL,
     SLASH_EQUAL, STAR_EQUAL,
-    AND_AND, OR_OR,
+    AND, BIT_AND_EQUAL, OR, BIT_OR_EQUAL,
+    ARROW, X_OR_EQUAL, DIFFERENT,
+    PLUS_PLUS, MINUS_MINUS,
 
     /* Literals : Literal (valores) */
     IDENTIFIER, STRING, CHARACTER, NUMBER,
