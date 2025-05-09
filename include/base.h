@@ -10,6 +10,4 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 #endif //GRAMMAR_BASE_H

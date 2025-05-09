@@ -92,12 +92,7 @@ void MainLexer ( void ) { /* Lexer structure based on Crafting Interpreters: htt
             case '<': AddToken(scanner.match('=') ? LESSER_EQUAL : LESSER); break;
             case '>': AddToken(scanner.match('=') ? GREATER_EQUAL : GREATER); break;
             case ';': AddToken(SEMICOLON); break;
-
-            case '/':
-                if ( scanner.next() == '/' || scanner.next() == '*' ) Comments();
-                else AddToken( scanner.match('=') ? SLASH_EQUAL : SLASH );
-                break;
-
+            case '/': scanner.next() == '/' || scanner.next() == '*' ? Comments() : AddToken( scanner.match('=') ? SLASH_EQUAL : SLASH ); break;
             case '*': AddToken(scanner.match('=') ? STAR_EQUAL : STAR); break;
             case '&': AddToken(scanner.match('&') ? AND : scanner.match('=') ? BIT_AND_EQUAL : BIT_AND); break;
             case '|': AddToken(scanner.match('|') ? OR: scanner.match('=') ? BIT_OR_EQUAL : BIT_OR); break;
@@ -216,4 +211,7 @@ static void Comments ( void ) {
     scanner.advance();
 }
 
-static void Preprocessor ( void ) { while ( scanner.peek() != '\n' ) scanner.advance(); }
+static void Preprocessor ( void ) {
+    current = -1;
+    while ( scanner.peek() != '\n' ) scanner.advance();
+}

@@ -16,4 +16,5 @@ add_executable ( grammar
         src/c-lex/scanner.h
         src/c-lex/keywords.c
         src/c-lex/keywords.h
+        src/c-lex/test/test.c
 )

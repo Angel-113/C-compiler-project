@@ -1,8 +1,12 @@
 #include "lexer.h"
+float f = 3.14156;
+double d = 16.5;
 
 Scanner scanner = { 0 }; /* Scanner for reading the file */
 LAResult result = { 0 }; /* Where to save the Lexical Analysis results */
 Map map = { 0 }; /* A hash table for identifying keywords */
+
+result->ptr;
 
 static char tBuffer[100] = { 0 }; /* Buffer for lexeme */
 static long int current = 0; /* Current buffer position */
