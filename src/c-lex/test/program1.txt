@@ -1,5 +1,5 @@
 int main ( void ) {
-    float b = 3.14;
+    float b ==3.14;
     /*
     NIGGERS
     */

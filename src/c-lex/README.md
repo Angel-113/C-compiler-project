@@ -227,17 +227,32 @@ doesn't match with any of the given set, then the function returns `ERROR` as a 
 
 The main lexer works as follows:
 
+```
 while ( current_char != EOF ) do:
 
-- Read a character c: 
-- if c is # advance until '\n'
-- else if c is ' ' or '\t' or '\n' advance
-- else if c is '/' and the next character is '/' or '*' call function to handle comments
-- else if c is alpha call function to handle identifiers and keywords
-- else if c is number call function to handle numbers
-- else if c is " call function to handle strings
-- else if c is ' call function to handle characters
-- else c is either one-character or two-character token
+Read a character c: 
+if c is # advance until '\n'
+else if c is ' ' or '\t' or '\n' advance
+else if c is '/' and the next character is '/' or '*' call function to handle comments
+else if c is alpha call function to handle identifiers and keywords
+else if c is number call function to handle numbers
+else if c is " call function to handle strings
+else if c is ' call function to handle characters
+else c is either one-character or two-character token
+
+end while
+
+printTokens()
+```
 
 ## Conclusions and further improving
 
+This is a personal project for a college class. It could have some unexpected
+bugs and errors. There's an issue when adding two-character tokens: I haven't 
+found a way to store correctly the entire lexeme and its size without modifying
+too much the code for adding a token or without using some extra variable. 
+
+There's a probability that I will use this code for trying to code a compiler
+so, if you notice any important bug (one that leads to a compilation error or
+something like that) please, feel free to contact me or open a discussion in
+this repository. 
